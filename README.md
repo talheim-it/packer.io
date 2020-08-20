@@ -4,6 +4,7 @@ Repository to build images for virtualbox with packer.io
 ## Tested
  - CentOS7
  - CentOS8
+ - Fedora32
  - Ubuntu1804
  - Ubuntu2004
 
