@@ -1,0 +1,80 @@
+{
+    "variables": {
+        "hostname": "ubuntu",
+        "domain": "local",
+        "ssh_user": "vagrant",
+        "ssh_pass": "vagrant",
+	    "iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/ubuntu-18.04.5-server-amd64.iso",
+        "iso_target_path": "/home/titrumbold/Data/Development/images/ubuntu-18.04.5-server-amd64.iso",
+        "iso_checksum": "8c5fc24894394035402f66f3824beb7234b757dd2b5531379cb310cedfdf0996",
+        "export_path": "/home/titrumbold/Data/Development/images/final/Ubuntu1804.box"
+    },
+    "builders": [{
+        "type": "virtualbox-iso",
+	    "communicator": "ssh",
+	    "ssh_pty": "true",
+        "guest_os_type": "Ubuntu_64",
+        "vm_name": "ubuntu18.04",
+        "iso_url": "{{user `iso_url`}}",
+        "iso_target_path": "{{user `iso_target_path`}}",
+        "iso_checksum": "{{user `iso_checksum`}}",
+        "memory": "2048",
+        "cpus": "1",
+        "disk_size": "20000",
+        "format": "ova",
+        "headless": "false",
+        "http_directory": "http",
+        "ssh_username": "{{user `ssh_user`}}",
+        "ssh_password": "{{user `ssh_pass`}}",
+        "ssh_wait_timeout": "20m",
+        "boot_command": [
+        "<esc><wait>",
+        "<esc><wait>",
+        "<enter><wait>",
+        "/install/vmlinuz<wait>",
+        " auto<wait>",
+        " console-setup/ask_detect=false<wait>",
+        " console-setup/layoutcode=de<wait>",
+        " console-setup/modelcode=pc105<wait>",
+        " debconf/frontend=noninteractive<wait>",
+        " debian-installer=en_US<wait>",
+        " fb=false<wait>",
+        " initrd=/install/initrd.gz<wait>",
+        " kbd-chooser/method=de<wait>",
+        " keyboard-configuration/layout=German<wait>",
+        " keyboard-configuration/variant=German<wait>",
+        " locale=en_US<wait>",
+        " netcfg/get_domain=local<wait>",
+        " netcfg/get_hostname=ubuntu<wait>",
+        " grub-installer/bootdev=/dev/sda<wait>",
+        " noapic<wait>",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<wait>",
+        " -- <wait>",
+        "<enter><wait>"
+        ],
+	      "shutdown_command": "echo 'vagrant' | sudo poweroff"
+    }],
+
+    "provisioners": [{
+        "type": "shell",
+	      "execute_command": "echo 'vagrant' | sudo -S -E sh '{{.Path}}'",
+        "inline": [
+            "sleep 30",
+            "sudo apt update",
+            "sudo apt -y install bash-completion wget vim curl",
+	          "sudo apt -y dist-upgrade",
+	          "mkdir --mode=700 /home/vagrant/.ssh",
+	          "chown vagrant:vagrant /home/vagrant/.ssh",
+	          "wget --no-check-certificate 'https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub' -O /home/vagrant/.ssh/authorized_keys",
+	          "chown vagrant:vagrant /home/vagrant/.ssh/authorized_keys",
+	          "chmod 0600 /home/vagrant/.ssh/authorized_keys",
+            "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Vienna /etc/localtime && apt-get update && apt-get dist-upgrade -y && apt-get install vim && apt-get install --install-recommends linux-generic-hwe-18.04 -y"
+        ]
+    }],
+    "post-processors": [
+      {
+        "output": "{{user `export_path`}}",
+        "type": "vagrant"
+      }
+    ]
+}

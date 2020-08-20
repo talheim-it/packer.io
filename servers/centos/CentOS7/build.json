@@ -1,0 +1,42 @@
+{
+  "variables": {
+    "ssh_username": "vagrant",
+    "ssh_password": "vagrant",
+    "iso_url": "http://mirror.easyname.at/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-2003.iso",
+    "iso_checksum": "file:http://mirror.easyname.at/centos/7/isos/x86_64/sha256sum.txt"
+  },
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "iso_url": "{{ user `iso_url` }}",
+      "iso_checksum": "{{ user `iso_checksum` }}",
+      "vm_name": "CentOS7",
+      "guest_os_type": "RedHat_64",
+      "ssh_username": "{{ user `ssh_username` }}",
+      "ssh_password": "{{ user `ssh_password` }}",
+      "ssh_port": 22,
+      "ssh_wait_timeout": "600s",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "2048"],
+        ["modifyvm", "{{.Name}}", "--cpus", "2"],
+        ["modifyvm", "{{.Name}}", "--audio", "none"]
+      ],
+      "disk_size": "10240",
+      "http_directory": "http",
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+      ],
+      "shutdown_command": "echo 'vagrant' | sudo poweroff"
+    }
+  ],
+  "post-processors": [
+        {
+          "type": "vagrant",
+          "override": {
+            "virtualbox": {
+              "output": "/home/titrumbold/Data/Development/images/final/CentOS7.box"
+            }
+          }
+        }
+  ]
+}

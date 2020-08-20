@@ -1,0 +1,62 @@
+{
+  "variables": {
+      "hostname": "ubuntu2004",
+      "domain": "local",
+      "ssh_user": "vagrant",
+      "ssh_pass": "vagrant",
+      "iso_url": "http://releases.ubuntu.com/20.04/ubuntu-20.04.1-live-server-amd64.iso",
+      "iso_target_path": "/home/titrumbold/Data/Development/images/source/ubuntu-20.04-server-amd64.iso",
+      "iso_checksum": "443511f6bf12402c12503733059269a2e10dec602916c0a75263e5d990f6bb93",
+      "export_path": "/home/titrumbold/Data/Development/images/final/Ubuntu2004.box"
+  },
+  "builders": [{
+      "type": "virtualbox-iso",
+      "communicator": "ssh",
+      "ssh_pty": "true",
+      "guest_os_type": "Ubuntu-64",
+      "vm_name": "ubuntu20.04",
+      "iso_url": "{{user `iso_url`}}",
+      "iso_target_path": "{{user `iso_target_path`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "memory": "2048",
+      "cpus": "1",
+      "disk_size": "20000",
+      "format": "ova",
+      "headless": "false",
+      "http_directory": "http",
+      "ssh_username": "{{user `ssh_user`}}",
+      "ssh_password": "{{user `ssh_pass`}}",
+      "ssh_handshake_attempts": "20",
+      "ssh_wait_timeout": "20m",
+      "boot_wait": "5s",
+      "boot_command": [
+        "<enter><enter><f6><esc><wait> ",
+        "autoinstall ds=nocloud-net;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/",
+        "<enter>"
+      ],
+      "shutdown_command": "echo 'vagrant' | sudo poweroff"
+   }
+  ],
+
+  "provisioners": [{
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | sudo -S -E sh '{{.Path}}'",
+      "inline": [
+          "sleep 30",
+          "mkdir --mode=700 /home/vagrant/.ssh",
+          "chown vagrant:vagrant /home/vagrant/.ssh",
+          "wget --no-check-certificate 'https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub' -O /home/vagrant/.ssh/authorized_keys",
+          "chown vagrant:vagrant /home/vagrant/.ssh/authorized_keys",
+          "chmod 0600 /home/vagrant/.ssh/authorized_keys",
+          "sudo echo 'vagrant ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/vagrant",
+          "sudo chmod 440 /etc/sudoers.d/vagrant",
+          "sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Europe/Vienna /etc/localtime && apt-get update && apt-get dist-upgrade -y"
+    ]
+  }],
+  "post-processors": [
+    {
+      "output": "{{user `export_path`}}",
+      "type": "vagrant"
+    }
+  ]
+}
